@@ -53,9 +53,6 @@
 # # Start Apache
 # CMD ["apache2-foreground"]
 
-
-
-
 FROM php:8.2-apache
 
 # Install system dependencies
@@ -71,7 +68,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# ✅ IMPORTANT: Set Apache to serve Laravel public folder
+# Set Apache document root to Laravel public folder
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
@@ -80,7 +77,7 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
 # Enable mod_rewrite
 RUN a2enmod rewrite
 
-# ✅ COPY FULL PROJECT FIRST (FIXES YOUR ERROR)
+# Copy full project
 COPY . .
 
 # Install PHP dependencies
@@ -89,17 +86,14 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Install frontend dependencies & build assets
 RUN npm install && npm run build
 
-# Laravel optimizations
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
-# Fix permissions
+# Set correct permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
 # Expose port
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# ✅ FINAL START COMMAND (VERY IMPORTANT FIX)
+CMD sh -c "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan storage:link && apache2-foreground"
+
+
