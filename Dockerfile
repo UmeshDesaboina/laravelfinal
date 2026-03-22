@@ -59,8 +59,9 @@ FROM php:8.2-apache
 RUN apt-get update && apt-get install -y \
     git curl zip unzip \
     libpng-dev libonig-dev libxml2-dev libzip-dev \
+    libpq-dev \
     nodejs npm \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -93,7 +94,5 @@ RUN chown -R www-data:www-data /var/www/html \
 # Expose port
 EXPOSE 80
 
-# ✅ FINAL START COMMAND (VERY IMPORTANT FIX)
+# Start Laravel properly (fixes your 500 error + DB issue)
 CMD sh -c "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan storage:link && apache2-foreground"
-
-
