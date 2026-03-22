@@ -95,4 +95,4 @@ RUN chown -R www-data:www-data /var/www/html \
 EXPOSE 80
 
 # Start Laravel properly (fixes your 500 error + DB issue)
-CMD sh -c "php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan storage:link && apache2-foreground"
+CMD sh -c "rm -rf bootstrap/cache/*.php && php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan storage:link && apache2-foreground"
